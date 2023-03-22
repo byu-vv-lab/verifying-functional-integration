@@ -1,0 +1,96 @@
+The model of the workflow and CWP object state require behaviors defined for all inputs.
+For example, the CWP object state is transformed over time by various distributed activities carried out by different actors.
+Some aspects of the object state are transformed directly by the system workflow, such as the doctor orders, while others are inputs on which the workflow makes decisions, such as the patient severity and trending patient severity. These later inputs form the \emph{environment} in which the CWP exists.
+For verification, the behavior of these environment inputs must be modeled, and the verification results only hold relative to the behaviors considered by that environment model.
+The same is true for aspects of the workflow. Each is discussed below.
+
+\subsection{CWP Environment Model}
+The severity of the patient is established by an exam with a physician, but that severity is fundamentally a characteristic of the patient and the progression of the disease.
+The physician assesses the patient and ascribes a severity, but the patient, with their symptoms, are an input to the model.
+The same with the trending severity.
+
+\begin{comment}
+There is, of course, a causal relationship between the decisions in a workflow and the resulting subsequent input.
+For example, it is normally expected that when a doctor orders a patient admitted to the hospital that at some point in the future the severity rating for the patient diminishes due to the increased level of intervention and care.
+Here is where modeling choices can limit the impact, and meaning, of any verification results as the verification only hold for the modeled input behavior.
+
+The intent is to create the weakest (e.g., the least restrictive) environment model possible in which a workflow is able to be verified.
+That means the environment model includes behavior that exists in the real world, and it includes behaviors that do not exist in the real world resulting in a \emph{sound over-approximation} of feasible environment behavior.
+If a workflow verifies in the sound over-approximated environment, then by implication, that verification result holds in the real world since those behaviors are a subset of the ones considered for verification.
+\end{comment}
+
+The model for the \texttt{sevNeed} strongly correlates with \texttt{trndSevNeed}.
+%
+{\small
+\begin{lstlisting}[style=myPromela]
+inline updateSeverity(trndSevNeed, sevNeed) {
+  if
+  :: true -> setWithinHomeCare(sevNeed)
+  :: true -> setOutsideHomeCare(sevNeed)
+  fi 
+  setSeverity(trndSevNeed, sevNeed)
+  updateState()
+  logSeverity(sevNeed)}
+\end{lstlisting}
+}
+%
+\noindent The if-statement is one way to specify a point of non-determinism.
+In the model for \texttt{sevNeed}, the \texttt{:: true ->} is an always enabled choice for the if-statement to resolve. 
+
+For example, for the first exam where \texttt{sevNeed} and \texttt{trndSevNeed} have initial values, the resulting severity can by any one of two choices.
+The model checker considers all ways to resolve non-determinism so there does exists paths where the severity level never changes.
+Such behavior is addressed with the fairness property discussed previously.
+
+The model for \texttt{trndSevNeed} is simple with only two non-deterministic choices that are independent of the actual \texttt{sevNeed} of the patient. 
+%
+{\small
+\begin{lstlisting}[style=myPromela]
+inline updateSeverityTrend(trndSevNeed) {
+  if
+  :: true -> 
+    setWithinCareCapability(trndSevNeed)
+  :: true -> 
+    setOutsideCareCapability(trndSevNeed)
+  fi}
+\end{lstlisting}
+}
+%
+\noindent The amount that a patient is within or without the bounds of their care capability is not considered;
+rather, \texttt{trndSevNeed} is reduced to a Boolean proposition indicating if the case is one way or the other.
+
+There is one final model that is part of the environment associated with the CWP, and that is the model for patient mortality. 
+%
+{\small
+\begin{lstlisting}[style=myPromela]
+inline updateMortality(trndSevNeed, sevNeed) {
+  if
+  :: (! isWithinHomeCare(trndSevNeed)) -> 
+    setSeverity(sevNeed, EXPIRED)
+  :: (! isWithinHomeCare(sevNeed)) ->
+    setSeverity(sevNeed, EXPIRED)
+  :: true
+  fi
+  updateState()
+  logSeverity(sevNeed)}
+\end{lstlisting}
+}
+%
+\noindent A patient may expire anytime the levels of the \texttt{sevNeed} or \texttt{trndSevNeed} are outside the bounds of the home care level.
+
+\subsection{Workflow Environment Model}
+
+\begin{comment}
+The workflow itself has state not just for where the tokens are located as discussed is \secref{sec:bpmn}.
+It makes decisions at different points based on the values of \texttt{alert}, \texttt{examType}, and \texttt{examTime}.
+Their values are updated by their associated tasks in the workflow, but how the values evolve over time is not specified.
+As such, they are modeled as inputs provided by the environment which are sampled when their associated tasks are activated.
+\end{comment}
+
+The \texttt{alert} is only correlated with \texttt{trndSevNeed} in that it is updated whenever the trend is updated, but aside from that, it is unconstrained;
+thus, it is able to be raised or not raised each time regardless of the value of \texttt{trndSevNeed}
+The \texttt{examType} is correlated with \texttt{trndSevNeed} in that it can become urgent if the trend is outside the care capability level.
+The \texttt{examTime} is non-deterministic once it is scheduled meaning it randomly chooses between leaving it scheduled and having the exam be now.
+
+This non-determinism in \texttt{examTime} means that one behavior in the workflow model is that \texttt{examTime} is never \texttt{now} and is infinitely just \texttt{scheduled}.
+Such behavior is one of several behaviors that are part of the workflow model but not consistent with the real world in which the workflow exists.
+As before, this behavior is constrained by the fairness property as discussed previously.

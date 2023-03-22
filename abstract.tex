@@ -1,0 +1,27 @@
+\begin{comment}
+Functional integration of human cognition and machine reasoning is an industry-wide problem where failure risks health or safety.
+Differences in human versus machine functioning obscure conventional integration. 
+We introduce cognitive work problems (CWP) for rigorous, verifiable functional integration. 
+CWP specify the cognitive problem that integrated designs must solve. 
+They are technology-neutral, abstract work objects, allowing people and computing to share and transform them in coordination.
+The end-to-end method is illustrated on a system that employs AI for remote patient monitoring (RPM) during COVID-19 home care. 
+The CWP specified \emph{actionable risk awareness} as the medical problem RPM must solve.
+Graphical modeling standards enabled user participation: CWP as finite state machines and system behavior in BPMN. 
+For model checking, the CWP’s logical content was translated to linear temporal logic (LTL) and the BPMN into Promela as inputs to the SPIN model checker. 
+SPIN verified the Promela implements the LTL correctly.
+We conclude this CWP-derived RPM design solves the medical problem and enhances patient safety. 
+The method appears general to many critical systems.
+
+\end{comment}
+
+Many critical systems industry-wide demand fail-safe integration of human cognition and machine reasoning.
+This integration is difficult because of inherent dissimilarity between human and machine functioning.
+Existing methods for validating systems with human and machine functioning require expertise in formal verification and are labor intensive.
+Additionally, error output from existing methods is exclusively text-based and demands extensive time and familiarity to comprehend.
+We introduce a tool for automating verification of systems with human and machine functioning.
+Participation in the automation process requires very little knowledge of the underlying model checking tools.
+We demonstrate the effectiveness of the tool using examples of models including subtle-but-critical errors.
+We present an extensible model to demonstrate the scalability of the automated verification tool.
+We also introduce an understandable visual representation of model failures to enable quick iteration on subsequent model versions.
+The visual representation is critical to understanding why a model doesn't comply with given temporal properties.
+We conclude that model checking is a viable method for verifying systems that require human and machine integration.

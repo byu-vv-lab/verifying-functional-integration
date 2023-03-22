@@ -1,0 +1,24 @@
+This tool has been used to verify five BPMN-CWP pairs.
+
+Figure 1 shows the BPMN of the first example, a face-to-face purchase. The Buyer and seller are condensed into a single actor for simplicity in this model. The purchase process involves negotiation periods for both the price and the terms. Once the price and terms are agreed upon, the model can proceed to the exchange and then exit. Figure 2 shows the CWP for this purchase. The CWP has 5 states, of which 2 are goal states. It is the workflow's responsibility to either send the state of the CWP to "Purchase Failed" or to "Ownerships Switched". Note that even though "Purchase Failed" might not sound like a goal state, it is for purposes of verifying eventual termination.
+
+Figure 3 shows the BPMN of the second example, an asynchronous remote purchase system named "BuyN'Sell". This BPMN splits the buyer and seller into different parties, as well as introducing some reasoning about fulfillment of the order. BuyN'Sell shares a CWP with the first example. This was done on purpose to show the power of CWP. Because it shouldn't reason at all about the context or the actors in the work, it can be used to verify multiple "purchase" BPMNs with drastically different performance characteristics.
+
+Figure 4 shows the BPMN of the third example, the original example from \cite{mercer22}. In this example, a patient diagnosed with COVID-19 is being monitored remotely. Figure 5 shows the corresponding CWP. When we verify the BPMN against this CWP, we are ensuring that the patient is never incidentally mistreated in the BPMN according to the readings from the remote monitoring device.
+
+Figure 6 shows the BPMN of the fourth example. In this example, we show the scalability of the automation and verification process. This example contains a single actor with multiple decisions to make sequentially. We call this horizontal scaling. Figure 7 shows the corresponding CWP. The CWP here has just two states, only requiring that the BPMN execute to completion.
+
+Figure 8 shows the BPMN of the fifth example. This is also an example to show scalability. In this example, there are multiple actors, all with a single decision to make. It is important to note that all of the actors interact with a single global state variable here. This type of scaling we will call vertical scaling. This example shares a CWP with the previous one.
+
+TODO: For each example:
+\begin{itemize}
+    \item Insert Images of CWP/BPMN
+    \item Describe the basic structure
+    \item Run through an example execution path (use annotated images from counterexample visualizer)
+    \item Explain why it is being used
+\end{itemize}
+
+TODO: Give computer specs and timing for each of the given examples
+
+TODO: Detail a few of the subtle errors found by the model checking
+
