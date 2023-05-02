@@ -2,11 +2,8 @@ Another difficult part of automating is the generation of an environment. The in
 
 These environment variables are manipulated during the activities in the BPMN. The exact nature of these manipulations plays a vital role in the verification process. We call these manipulations the behavior models.
 
-The behavior models can be defined in two different ways:
+The behavior models are defined by a process beginning with specifying for each variable a set of possible values and a set of activities in which it can be modified. Then, it is the author's responsibility to further restrict the behavior models according to the complexity of the decisions in the workflow.
 
-\begin{enumerate}
-    \item Begin with a minimally restrictive set of behavior models. These behavior models are allowed to manipulate any variable to any value. It is the author's responsibility to modify these directly if it is not the desired behavior. It is most often not desired.
-    \item Begin by specifying for each variable a set of possible values and a set of activities in which it can be modified. It is still the author's responsibility to further restrict the behavior models in this case, but with an initial set of restrictions, the work can be decreased.
-\end{enumerate}
+It should be noted that initial variable values are essential for the verification process. This is because the verifier will first check the LTL property, then step forward in the Promela code. This means that variables cannot be initialized in the first activity of the BPMN unless uninitialized variables are accounted for in the CWP. We recommend avoiding this and declaring initial values for at least some of the environment variables.
 
-It should be noted that initial variable values are essential for the verification process. This is because the verifier with first check the LTL property, then step forward in the Promela code. This means that variables cannot be initialized in the first activity of the BPMN unless uninitialized variables are accounted for in the CWP. We recommend avoiding this and declaring initial values for at least some of the environment variables.
+\egm{Which of the two above is implemented right now? Let's write about that one and indicate the other as future work?}

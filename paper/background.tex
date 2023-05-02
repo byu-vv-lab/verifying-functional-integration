@@ -1,20 +1,5 @@
+\egm{You are part of the proposal overleaf project where I am trying to write formal digests of my previous work. Let's plan to revise, refine, and add to what is there. That will be the basis for this background section. Missing in the text I have written is a clear mathematical statement of the CWP and the same for the BPMN. I might suggest that we create subsections here for the CWP and the BPMN with each containing the definitions and the associated translations. The goal of this section is then to define the CWP, with its LTL interpretation, and define the BPMN (workflow) with its Promela interpretation.}
+
 The work in \cite{mercer22} accomplishes a few things that are necessary background components for this work. First, it introduces a method for translating a BPMN diagram into verifiable Promela code. Second, it introduces a way of interpreting a CWP as a set of LTL properties and defines this method rigorously. Lastly, it uses a practical example in healthcare to show that the Promela and LTL can be used together to verify the integration of human and machine cognition in the original BPMN.
-
-The method for generating Promela from a BPMN diagram is similar to a petri-net design. We imagine that the point of execution in the BPMN is a token in the petri-net. The resulting Promela model has one primary "while" loop with a set of nondeterministic options for execution. Each option corresponds to a possible movement of the token. The token is consumed in a node before being created in a following node. Then, execution returns to the primary loop. Because of the nondeterministic nature of Promela and its verifier SPIN, this process can create the comprehensive state space for the BPMN.
-
-The CWP is interpreted as LTL properties by breaking it into two sets: global and state properties. The global properties are:
-\begin{enumerate}
-    \item The system is always in one of the states
-    \item The system eventually reaches one of the goal states
-\end{enumerate}
-
-State properties are generated for each state in the CWP, and ensure the following:
-\begin{enumerate}
-    \item The state is reachable in the system
-    \item When the system is in a state, it is only in that state
-    \item When the system moves from the current state, it only moves to a state that has a transition from the current state
-\end{enumerate}
-
-A rigorous mathematical definition of this process can be found in **CITE APPENDIX**
 
 These processes are applied to a medical practice centered around a device for at-home COVID-19 care. The results showed that the process verified against a provided CWP and therefore, integrated the human and machine actors correctly.

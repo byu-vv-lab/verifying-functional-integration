@@ -1,0 +1,15 @@
+
+The CWP is interpreted as LTL properties by breaking it into two sets: global and state properties. The global properties are:
+\begin{enumerate}
+    \item The system is always in one of the states
+    \item The system eventually reaches one of the goal states
+\end{enumerate}
+
+State properties are generated for each state in the CWP, and ensure the following:
+\begin{enumerate}
+    \item The state is reachable in the system
+    \item When the system is in a state, it is only in that state
+    \item When the system moves from the current state, it only moves to a state that has a transition from the current state
+\end{enumerate}
+
+A rigorous mathematical definition of this process can be found in **CITE APPENDIX**

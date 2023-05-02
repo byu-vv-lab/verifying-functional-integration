@@ -53,6 +53,11 @@
 
 \newcommand{\scitesection}[1]{\section{\uppercase{#1}}}
 
+\newif\ifcomments
+\commentstrue
+\newcommand{\egm}[1]{\ifcomments\textcolor{orange}{egm: #1}\fi}
+\newcommand{\bryce}[1]{\ifcomments\textcolor{blue}{bryce: #1}\fi}
+
 \begin{document}
 
 \title{
@@ -84,17 +89,38 @@ Provo UT, USA \\
 \section{Introduction}
 \input{intro}
 
+\section{Simple Example}
+\label{sec:simpleExample}
+\input{simpleExample}
+
 \section{Background}
 \label{sec:background}
 \input{background}
 
-\section{BPMN Translation Automated Reasoning}
+\subsection{CWP}
+\label{sec:backgroundCWP}
+\input{backgroundCWP}
+
+\subsection{BPMN}
+\label{sec:backgroundBPMN}
+\input{backgroundBPMN}
+
+\section{Automatic Generation of the Promela Model}
+\label{sec:automaticGeneration}
+\input{automaticGeneration}
+
+\subsection{CWP Translation}
+\label{sec:cwpTranslation}
+\input{cwpTranslation}
+
+\subsection{BPMN Translation}
 \label{sec:bpmnReasoning}
 \input{bpmnReasoning}
 
-\section{Environment Construction}
+\subsection{Environment Generation}
 \label{sec:envConstruction}
 \input{envConstruction}
+
 
 \section{Counterexample Visualization}
 \label{sec:counterexample}
