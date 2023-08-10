@@ -16,7 +16,10 @@
 \usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
 \graphicspath{{./figs/}} 
 \usepackage{paralist}
+\usepackage{svg}
+\usepackage[T1]{fontenc}
 \usepackage{hyperref}
+
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
@@ -41,6 +44,16 @@
   morekeywords={always, eventually, until, implies, ltl}
 }
 
+\lstdefinestyle{myTXT}
+{frame=none,
+  basicstyle=\ttfamily,
+  aboveskip=1mm,
+  belowskip=1mm,
+  columns=fullflexible,
+  breaklines=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+}
+
 \newcommand{\figref}[1]{Fig.~\ref{#1}}
 \newcommand{\secref}[1]{Sec.~\ref{#1}}
 
@@ -50,7 +63,6 @@
 \newcommand{\etc}{\textit{etc.}}
 \newcommand{\adhoc}{\textit{ad hoc}}
 \newcommand{\phware}{PHware}
-
 \newcommand{\scitesection}[1]{\section{\uppercase{#1}}}
 
 \newif\ifcomments
@@ -83,7 +95,7 @@ Provo UT, USA \\
 \end{abstract}
 
 \begin{IEEEkeywords}
-    Cognitive Modeling, Business Process Modeling, Model Checking, Model-Based Validation, SPIN, Linear Temporal Logic, COVID-19
+    Business Process Modeling, Model Checking, Model-Based Validation, SPIN, Linear Temporal Logic, Model Transformation
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -105,7 +117,7 @@ Provo UT, USA \\
 \label{sec:backgroundBPMN}
 \input{backgroundBPMN}
 
-\section{Automatic Generation of the Promela Model}
+\section{Automated Generation of the Promela Model}
 \label{sec:automaticGeneration}
 \input{automaticGeneration}
 
@@ -121,6 +133,9 @@ Provo UT, USA \\
 \label{sec:envConstruction}
 \input{envConstruction}
 
+\section{Tool Architecture}
+\label{sec:toolArchitecture}
+\input{toolArchitecture}
 
 \section{Counterexample Visualization}
 \label{sec:counterexample}
@@ -129,10 +144,6 @@ Provo UT, USA \\
 \section{Evaluation}
 \label{sec:eval}
 \input{eval}
-
-\section{SPIN Verification Results}
-\label{sec:results}
-\input{results}
 
 \section{Related Work}
 \input{rw}

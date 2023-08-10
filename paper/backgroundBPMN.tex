@@ -1,1 +1,20 @@
-The method for generating Promela from a BPMN diagram is similar to a petri-net design. We imagine that the point of execution in the BPMN is a token in the petri-net. The resulting Promela model has one primary "while" loop with a set of nondeterministic options for execution. Each option corresponds to a possible movement of the token. The token is consumed in a node before being created in a following node. Then, execution returns to the primary loop. Because of the nondeterministic nature of Promela and its verifier SPIN, this process can create the comprehensive state space for the BPMN.
+The method for generating Promela from a BPMN diagram follows token-based design that is referenced in the BPMN specification \cite{BPMNSpecification} discussed earlier in reference to Face2Face. To explain this design, we need to define tokens, places, actions, and triggers. Tokens are conceptual items that "traverse the Sequence Flows and pass through the elements in the Process." \cite{BPMNSpecification} Places are elements in the workflow in which a token may reside and include events, gateways, activities, and flows. Some places have associated actions. An action is composed of three steps. First, it consumes some amount of tokens. Then, it may or may not transform the object state. Last, it produces tokens. Each action has an associated trigger. A trigger is a condition about presence of tokens in specific places. For many actions the trigger is having one token present at an incoming flow. Other elements may require additional tokens, such as on an incoming message or, in the case of some join gateways, on multiple incoming flows. Once a trigger is true, the associated action is added to a set of available actions. At each step in execution, a single action is chosen nondeterministically.
+
+To simulate this behavior in Promela, we use a while loop. The following code shows the template used: 
+
+\begin{lstlisting}[style=myPromela]
+active proctype name() {
+  /* Add tokens to initial elements */
+  do
+  :: /* element_0 trigger */ ->
+    /* element_0 actions */
+  :: /* element_1 trigger */ ->
+    /* element_1 actions */
+  /* ... */  
+  :: /* element_n trigger */ ->
+    /* element_n actions */
+  od
+}
+\end{lstlisting}
+
+Each process in the Promela model has one primary "while" loop with a set of nondeterministic execution options. Each option corresponds to a possible action. At each step, the verifier chooses one action to perform. Then, execution returns to the primary loop. Because of the nondeterministic nature of Promela and its verifier SPIN, this process can create the comprehensive state space for the BPMN. A state in the BPMN is characterized both by the location of tokens and the value of object state variables. 

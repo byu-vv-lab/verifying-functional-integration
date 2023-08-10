@@ -1,9 +1,82 @@
 Another difficult part of automating is the generation of an environment. The initial definition of the environment must be provided to the automation tool as a set of variables and constants. Every variable that shows up in a conditional edge in the BPMN must be defined at this stage, otherwise verification will cease.
 
-These environment variables are manipulated during the activities in the BPMN. The exact nature of these manipulations plays a vital role in the verification process. We call these manipulations the behavior models.
+The object state is currently defined in a TXT file. An example of an object state file is given below.
+%
+{\small
+\begin{lstlisting}[style=myTXT]
+belowPaymentAmount belowPaymentAmount
+paymentAmount paymentAmount
+INIT INIT
+other other
+buyerName buyerName
+sellerName sellerName
+agreed agreed
+failed failed
+pending pending
+noRetry noRetry
 
-The behavior models are defined by a process beginning with specifying for each variable a set of possible values and a set of activities in which it can be modified. Then, it is the author's responsibility to further restrict the behavior models according to the complexity of the decisions in the workflow.
+terms terms pending [agreed, failed, pending, noRetry]
+backpackOwner backpackOwner sellerName [buyerName, sellerName]
+paymentOwner paymentOwner buyerName [sellerName, buyerName]
+paymentOffered paymentOffered pending [paymentAmount, belowPaymentAmount, pending, noRetry]
+\end{lstlisting}
+}
+%
+The first thing defined are the constants. You will notice that each constant is stated twice in the given example. The first is the name of the constant in the CWP and the second is the name of the constant in the BPMN. When the BPMN and CWP are created synchronously, as in this example, coordinating the names precisely made sense. But we acknowledge that this may not always be possible or desirable.
+
+Despite not being explicitly stated, "True" and "False" are always included as constants. 
+
+After two line breaks, the file begins defining the object state variables. For both efficiency and simplicity, every object state variable is created as an "mtype" variable in Promela. This means that their possible values are limited to the defined constants listed previously. For each variable, both the CWP name and BPMN name are listed first, followed by the initial value. Then, in square brackets, the set of assignable values is listed.
 
 It should be noted that initial variable values are essential for the verification process. This is because the verifier will first check the LTL property, then step forward in the Promela code. This means that variables cannot be initialized in the first activity of the BPMN unless uninitialized variables are accounted for in the CWP. We recommend avoiding this and declaring initial values for at least some of the environment variables.
 
-\egm{Which of the two above is implemented right now? Let's write about that one and indicate the other as future work?}
+Another important point is that the ordering of constants matters. In promela, mtype variable options are assigned integer values under the hood. For checking equality and inequality, this doesn't matter. But it does matter when doing a comparison. In the simple purchase example explained previously, one condition for a successful purchase is that \lstinline[style=myPromela]{paymentOffered < paymentAmount}. 
+To assist in asserting this comparison, two constants are added to the object state definition: 
+\lstinline[style=myPromela]{paymentAmount}
+and \lstinline[style=myPromela]{belowPaymentAmount}. 
+It is critical that \lstinline[style=myPromela]{belowPaymentAmount} 
+be declared before \lstinline[style=myPromela]{paymentAmount} so that the underlying integer value is indeed lesser.
+
+These environment variables are manipulated during the activities in the BPMN. The exact nature of these manipulations plays a vital role in the verification process. We call these manipulations the behavior models.
+
+The behavior models are defined in a Promela (PML) file. This is an example snippet from a behavior models file:
+%
+{\small
+\begin{lstlisting}[style=myPromela]
+//Start7
+inline Start7_BehaviorModel(){
+	skip
+}
+//T1
+inline T1_BehaviorModel(){
+	if
+		:: true -> backpackOwner = sellerName
+	fi
+	if
+		:: true -> paymentOwner = buyerName
+	fi
+	updateState()
+}
+//XOR1
+inline XOR1_BehaviorModel(){
+	skip
+}
+//T2
+inline T2_BehaviorModel(){
+	if
+		:: true -> terms = agreed
+		:: true -> terms = failed
+	fi
+	if
+		:: true -> paymentOffered = paymentAmount
+		:: true -> paymentOffered = belowPaymentAmount
+	fi
+	updateState()
+}
+\end{lstlisting}
+}
+%
+The PML file must contain a valid PML inline for each activity in the BPMN diagram. These inlines will be called when a token passes thorugh an activity in the Promela model. For example, \lstinline[style=myPromela]{T1_BehaviorModel()}
+is the name of the inline that will be executed when the task named \lstinline[style=mypromela]{T1} 
+is reached. If the file does not exist when the translation process begins, the automation tool will output a stub file with the skeleton of each inline defined. Next the user must add Promela code to manipulate the object state in a way that is consistent with the intended behavior of the business process.  The inlines, in many cases, should contain nondeterminism. Using this nondeterminism, every reasonable outcome of that activity will be considered during verification. The creation of the behavior models is one aspect of translation that still requires an expert in model checking to complete. The writer of the Promela inlines must not only be proficient in the model checking language, but must also understand the nondeterministic intentions of the inlines. 
+

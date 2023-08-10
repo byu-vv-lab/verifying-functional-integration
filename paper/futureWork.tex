@@ -1,0 +1,10 @@
+Automated reasoning about domain of state variables in CWP and workflow
+
+Explore additional properties for larger verification coverage. For example, a property could enforce valid end states in the BPMN. The existing properties focus entirely on transitioning the CWP from an initial state to an end state. They make no claim on the BPMN.
+
+Counterexample visualization could be bolstered by a deeper investigation into SPIN trail files. One example is working to more accurately and consistently identify steps in the trail that represent critical moments.
+
+Compile a larger set of practical test input to get a more complete view of limitations and real-world viability.
+
+Improve BPMN readability by removing the condition expression from the edge labels originating at forking XOR gateways. Instead use the ConditionExpression attribute of the .bpmn XML file. This attribute can only be viewed and edited in the Camunda desktop modeller (not the online bpmn.io one).
+

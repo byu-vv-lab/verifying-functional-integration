@@ -1,5 +1,13 @@
-\egm{You are part of the proposal overleaf project where I am trying to write formal digests of my previous work. Let's plan to revise, refine, and add to what is there. That will be the basis for this background section. Missing in the text I have written is a clear mathematical statement of the CWP and the same for the BPMN. I might suggest that we create subsections here for the CWP and the BPMN with each containing the definitions and the associated translations. The goal of this section is then to define the CWP, with its LTL interpretation, and define the BPMN (workflow) with its Promela interpretation.}
+The work in \cite{mercer22} accomplishes a few things that are necessary background components for this work. First, it introduces a way of interpreting a CWP as a set of LTL properties and defines this method rigorously. Second, it introduces a method for translating a BPMN diagram into verifiable Promela code. Lastly, it uses a practical example in healthcare to show that the Promela and LTL can be used to verify the expected behavior of the original BPMN, represented as a CWP.
 
-The work in \cite{mercer22} accomplishes a few things that are necessary background components for this work. First, it introduces a method for translating a BPMN diagram into verifiable Promela code. Second, it introduces a way of interpreting a CWP as a set of LTL properties and defines this method rigorously. Lastly, it uses a practical example in healthcare to show that the Promela and LTL can be used together to verify the integration of human and machine cognition in the original BPMN.
+\figref{fig:existingSolution} shows a diagram of the solution in \cite{mercer22}. More details on the CWP-to-LTL and BPMN-to-Promela translations are given in \secref{sec:backgroundCWP} and \secref{sec:backgroundBPMN} respectively.
 
-These processes are applied to a medical practice centered around a device for at-home COVID-19 care. The results showed that the process verified against a provided CWP and therefore, integrated the human and machine actors correctly.
+\begin{figure*}[t]
+  \begin{center}
+    \begin{tabular}{c}
+        \includegraphics[width=\textwidth]{../figs/Other/ExistingSolution.png}
+    \end{tabular}
+  \end{center}
+\caption{Diagram of the solution upon which this paper is built}
+\label{fig:existingSolution}
+\end{figure*}
