@@ -1,0 +1,49 @@
+The module BPMN.BPMN defines the intermediate python graph representation for a BPMN workflow. Each node in the graph also includes methods necessary for us to utilize the visitor pattern on it.
+
+The module BPMN\_Visitor.BPMN\_Visitor defines the abstract BPMN visitor class. We inherit from this class to make visitors that generate Promela code.
+
+The module XMLIngest.BPMNXMLIngestor is the utility for ingesting BPMN XML files and generating a python BPMN graph.
+
+The module CWP.CWP defines the intermediate python graph representation for a CWP state diagram.
+
+The module XMLIngest.CWPXMLIngestor is the utility for ingesting CWP XML files and generating a python CWP graph.
+
+The module StateIngest.StateIngestor is the utility for ingesting a state TXT file written in the format described in \secref{sec:objectStateDefinition}. This module also contains the data class for a state variable. The result of ingesting the state file is a list of state variables.
+
+The module StateIngest.ActivityModifiesIngest is currently unused.
+
+The module ExpressionParse.ExpressionParser defines a class for parsing expressions. It is used in both the BPMN ingestion and in the CWP ingestion for both semantic and syntactic checks.
+
+The module CSVIngest.CSVIngestor is a deprecated ingestion method for CWP diagrams.
+
+The module PromelaGeneration.LTL\_gen includes a class for iterating through the elements of a CWP diagram and generating the corresponding LTL properties.
+
+The module PromelaGeneration.Promela\_gen\_visitor is a concrete implementation of the BPMN\_visitor class defined earlier. This visitor traverses a BPMN graph and generates the corresponding Promela model for it. 
+
+The module PromelaGeneration.Stub\_gen\_visitor is another concrete implementation of the BPMN\_visitor class. This visitor is used to traverse a BPMN and generate the skeleton of a behavior model inline for each element.
+
+The module CounterExampleParser.CounterExampleParser contains all of the utility for parsing through the output of a simulation run following a trail file. This module also defines a CounterExampleStep class, which includes important information about one step in the model's execution. The result of parsing is a list of steps.
+
+The module CounterExampleVisualize.BPMNETModifier contains the utility for modifying the XML files of a BPMN workflow based on a given CounterExampleStep.
+
+The module CounterExampleVisualize.CWPETModifier contains the utility for modifying the XML file of a CWP state diagram based on a given CounterExampleStep.
+
+The module CounterExampleVisualize.CounterExampleXMLGenerator contains the class that repeatedly uses the XML modifiers to generate a series of images, assisting in error visualization.
+
+The module BPMN-Generate.LongScaling contains a class for generating a BPMN file for an example used in sequential scalability testing.
+
+The module BPMN-Generate.WideScaling contains a class for generating a BPMN file for an example used in parallel scalability testing.
+
+The module CWP-Generate.LongScaling  contains a class for generating a CWP file for an example used in sequential scalability testing.
+
+The module CWP-Generate.WideScaling contains a class for generating a CWP file for an example used in parallel scalability testing.
+
+Main.py is the CLI entrypoint into the project. One of the most important command line arguments for the project is -e, which is followed by the name of an example CWP-BPMN pair. This will generate the LTL and Promela, perform verification, and generate error visualization for the given example. The automation tool will check for input files in the directory code/assets/examples/\{exampleName\}, where exampleName is the name of the example given at the command line. In this directory there is expected to be several files, each of which has been discussed previously:
+\begin{itemize}
+\item A BPMN XML file (named workflow.bpmn)
+\item A CWP XML file (named cwp.xml)
+\item An object state file (named state.txt)
+\item A behavior model Promela file (named behaviorModels.pml)
+\end{itemize}
+
+As the example is verifying, results are printed to the console and also written to a file, results.txt. This file is stored in code/output/examples/\{exampleName\}. This is also where the raw Promela model is stored. As mentioned earlier, a goal of this project was to make the generated model readable by one familiar with Promela. In some cases, careful inspection of the model may prove useful. Additionally, this is where any error visualization files are stored, under counterExamples/\{propertyName\}. A subdirectory will be created for each non-existential property that fails. Here, you will find XML and image files for both the BPMN and CWP. There will also be a PDF file for each, compiling all the image files together. Finally, when verification is finished, the tool writes a file named timing.txt that gives the time elapsed for promela model generation, model verification, and counterexample image generation.

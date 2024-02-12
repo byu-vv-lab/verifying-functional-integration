@@ -1,1 +1,9 @@
-The source code for the automation tool can be found \href{https://bitbucket.org/byu-vv/bpmn-cwp-verification/src/main/code/}{here}. The primary language is Python 3, with a small amount of shell scripting as well. 
+The source code for the automation tool can be found at \cite{sourceCode}. The primary language is Python 3. There is also a small amount of shell scripting.
+
+The tool is divided into modules, which are located in separate directories based on their function within the broad scope of the project. Some of the directories will be discussed in this section. A summary of each module's purpose is found in \appendixref{sec:descriptionOfModules}
+
+The two directories BPMN and CWP define Python graph representations for each structure. These intermediate representations assist in traversal as well as adding properties. For example, the CWP graph has fields to store the initial state and goal states.
+
+There are two XML ingestors - one for the CWP and one for the BPMN. The CWP ingestor expects an XML file using the library \emph{MXGraph}. The BPMN ingestor expects an .bpmn file format, which contains XML data. Both ingestors use a standard library to represent the file as an ElementTree in Python, and finally convert the data into the Python graph representations described previously.
+
+The object state file is ingested using a utility in the StateIngest package, which examines each line and creates variables based on the content of each line. The files are not thoroughly parsed and invalid input is not accounted for.

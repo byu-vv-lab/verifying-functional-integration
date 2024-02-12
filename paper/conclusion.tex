@@ -20,9 +20,20 @@ Expected benefits of verifiable integration include greater safety and reliabili
 
 \end{comment}
 
-Automated reasoning about domain of state variables in CWP and workflow
+Workflows have become a regular tool in modern business practices. They have also been increasingly used in the field of LC/NC development. But the efforts to verify workflow execution have been lacking. 
 
-Explore additional properties for larger verification coverage. For example, a property could enforce valid end states in the BPMN. The existing properties focus entirely on transitioning the CWP from an initial state to an end state. They make no claim on the BPMN.
+In this paper, we showed that workflows can be translated into verifiable Promela code. That code can then be verified against LTL properties represented by CWPs. This process can and has been automated, and we have provided an implementation for performing automated translation. Our solution uses an intermediate python graph structure and a visitor pattern to generate the Promela model and LTL properties. Additionally, we improve upon the format of the verification results by providing step-by-step annotated images when a verification error occurs. This improvement speeds up and eases the incremental process of modeling correct workflows.
 
-Compile a larger set of practical test input to get a more complete view of limitations and real-world viability.
+The automated process of verifying BPMN workflows has been tested on three examples as case-studies and two more as scalability exercises. The results show that this method of automated model checking is viable for sizes of workflows frequently seen in LC/NC applications.
 
+There are improvements to be made to the methods described in this paper. First, there should be efforts to conduct a usability study of the automation tool. We are interested not only in the ease of verification, but also in the generated Promela model's readability. Additionally, a usability study should seek to understand the usability of the generated counterexample in finding and fixing BPMN errors.
+
+There should be an effort to further automate the identification of the behavior models. Currently, the behavior models must be manually written by an expert in the workflow's domain. It is our desire that the majority of the behavior models be inferred from different aspects of the BPMN itself. An iterative verification approach could be used: Auto-generated behavior models are tested through verification. After each iteration, verification results are analyzed and behavior models are modified. Additional tools such as AI might also be utilized.
+
+There might also be efforts to explore additional verification properties of interest. For example, there may be a property that enforces eventual existence of valid end states in the BPMN. It may be the case that the BPMN accomplishes the work in the CWP before it reaches an end state itself. This might be undesirable behavior depending on the context.
+
+In order to be usable on many commercial workflows, the tool will need to support many new BPMN elements, especially sub-tasks and call activities. For each of these, there should be support for hierarchical verification. Essentially, the sub-task should be verified independently to behave in the desired way, with its own associated CWP. Then, once we are confident it behaved that way, we can assume that behavior in the behavior models of the parent BPMN workflow. This process has not been implemented into the verification tool at this time.
+
+We would like to compile a larger set of practical test inputs in order to get a more complete view of the tool's limitations and commercial viability. Commercial best modeling practices indicate that workflow scale should not cause problems for the automation tool, but having a large set of working examples would still be desirable.
+
+There may be more effective alternative ways of representing the verification properties. Currently, we are representing them as LTL properties which are supported natively by the model checker we use, SPIN. It may be more efficient, however, to generate never claims directly, since SPIN internally converts each LTL property into never claims anyway.

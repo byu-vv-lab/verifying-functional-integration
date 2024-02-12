@@ -1,0 +1,66 @@
+Defining an object state for the BPMN and mapping its variables to those referenced in the CWP is a necessary prerequisite for generating verifiable Promela models. The object state for a BPMN is defined as both the set of mutable variables with their current values, as well as the locations of tokens present in the model.
+
+The set of variables, both mutable and constant, is provided through an additional input TXT file. The following is a grammar for a line in the file:
+\begin{comment}
+
+%
+{\small
+\begin{lstlisting}[style=myTXT]
+const byte paymentAmount paymentAmount 253
+const byte belowPaymentAmount belowPaymentAmount 252
+const byte noRetryPayment noRetryPayment 254
+const enum INIT INIT
+const enum other other
+const enum buyerName buyerName
+const enum sellerName sellerName
+const enum agreed agreed
+const enum failed failed
+const byte pendingPayment pendingPayment 255
+const enum pending pending
+const enum noRetry noRetry
+
+enum terms terms pending [agreed, failed, pending, noRetry]
+enum backpackOwner backpackOwner sellerName [buyerName, sellerName]
+enum paymentOwner paymentOwner buyerName [sellerName, buyerName]
+byte paymentOffered paymentOffered pendingPayment [252-255]
+\end{lstlisting}
+}
+%
+
+\end{comment}
+
+\vspace{1em}
+\begin{tabular}{p{5em} p{1em} p{16em}}
+        Line   & $\rightarrow$ & ConstEntry | VarEntry \\
+        ConstEntry & $\rightarrow$ & \textbf{const} Numtype \textcolor{blue}{\textit{ID ID NUM}} \newline
+                    | \textbf{const} \textbf{enum} \textcolor{blue}{\textit{ID ID}} \newline
+                    | \textbf{const} \textbf{bool} \textcolor{blue}{\textit{ID ID}} \textbf{True} \newline
+                    | \textbf{const} \textbf{bool} \textcolor{blue}{\textit{ID ID}} \textbf{False} \\
+        VarEntry  & $\rightarrow$ & Numtype \textcolor{blue}{\textit{ID ID INIT Domain}} \newline
+                    | \textbf{enum} \textcolor{blue}{\textit{ID ID INIT Domain}} \newline
+                    | \textbf{bool} \textcolor{blue}{\textit{ID ID INIT}} \\
+        Numtype   & $\rightarrow$ & \textbf{byte} | \textbf{short} | \textbf{int} \\
+\end{tabular}
+\vspace{1em}
+
+Bolded words are literal terminals. Words colored blue and italicized are terminals that require a bit more explanation.
+
+Lines beginning with the keyword "const" define constants. Each other line defines an object state variable. 
+
+Next, the type is listed. Possible data types are "enum", "byte", "short", "int", and "bool". When parsing the conditions in the BPMN workflow and the CWP state diagram, a run-time error will occur if there are typing mismatches or if a non-numerical type is used in an inequality. 
+
+The typing is followed by both the CWP and BPMN reference names. For each constant and variable, both a CWP representation and a BPMN representation are given as an ID. An ID is any alphanumeric string beginning with a letter. The string may also contain some special characters. This allows the author to map variables between two diagrams that may not have been developed synchronously. In the case of \facetoface, it made sense to make the variable names match precisely between the two diagrams. But we acknowledge that this may not always be possible or desirable. 
+
+After the CWP and BPMN reference names, non-enum constants are given a value. This value can either be a boolean or a whole integer, denoted by \emph{NUM} in the grammar.
+
+If the line defines an object state variable, it provides an initial value, shown in the grammar as \emph{INIT}. The initial value must either be a type-matching constant or a literal value. Every state variable must be assigned an initial value. Additionally, it is vital that these initial values result in the object state residing in the \emph{init} CWP state. Otherwise, verification will fail immediately before any BPMN transitions are taken.
+
+Finally, for state variables, a \emph{Domain} is provided. This is a set of possible values are given in square brackets. This set is presented as a comma-separated list of values or ranges. This information has two purposes. First, it provides a loose domain for each variable when the model checker performs an exhaustive state space search. In most situations the domain must be restricted further. Details on this will be given in the next section, \secref{sec:behaviorModels}. The second purpose is error detection. During verification, if an object state variable ever has a value outside of its range of possible values, an error will immediately be reported, even if the error does not cause an issue with any particular property. Domains are not provided for boolean type object state variables.
+
+Location of tokens is represented in Promela as a bit for each possible token location. If a token is present, the bit is set to "True". If there is no token, it is "False". Locations of tokens effectively capture the point of execution the BPMN workflow is currently in. Where tokens are located is the second major component of the object state definition.
+
+\begin{comment}
+We acknowledge that restricting each location to a single token is a fairly tight restriction on the generic petri-net structure, but it is sufficient for most BPMN workflows. BPMN is designed to be easily readable and understandable at a glance, while a complex and unintuitive workflow structure is usually required to result in multiple tokens at the same location.
+\end{comment}
+
+With a concrete object state defined, the next step toward automation is expressing how and where these state variables are transformed in the BPMN workflow. This step is discussed in the next section.

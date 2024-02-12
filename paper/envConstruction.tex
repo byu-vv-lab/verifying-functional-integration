@@ -1,24 +1,26 @@
+\egm{The need for an environment is yet discussed. It should be made very clear in the background on the BPMN translation. Indeed, a major pain point in my work was the environment. What should it be? How should it be? I spent a ton of time on the different behavior models. Also, the diagram, Fig. 8, talks about Behavior Models and not environment. I suggest to adopt Behavior Model everywhere and dump the notion of environment altogether. Or, adopt environment and dump behavior model everywhere. In any case, I'm not sure breaking it out in its own section makes sense unless it is framed before in the context of the translation algorithm. In any case, it needs to be better integrated with the BPMN translation. Without that context, it's hard to understand what is going on.}
+
 Another difficult part of automating is the generation of an environment. The initial definition of the environment must be provided to the automation tool as a set of variables and constants. Every variable that shows up in a conditional edge in the BPMN must be defined at this stage, otherwise verification will cease.
 
 The object state is currently defined in a TXT file. An example of an object state file is given below.
 %
 {\small
 \begin{lstlisting}[style=myTXT]
-belowPaymentAmount belowPaymentAmount
-paymentAmount paymentAmount
-INIT INIT
-other other
-buyerName buyerName
-sellerName sellerName
-agreed agreed
-failed failed
-pending pending
-noRetry noRetry
+const enum belowPaymentAmount belowPaymentAmount
+const enum paymentAmount paymentAmount
+const enum INIT INIT
+const enum other other
+const enum buyerName buyerName
+const enum sellerName sellerName
+const enum agreed agreed
+const enum failed failed
+const enum pending pending
+const enum noRetry noRetry
 
-terms terms pending [agreed, failed, pending, noRetry]
-backpackOwner backpackOwner sellerName [buyerName, sellerName]
-paymentOwner paymentOwner buyerName [sellerName, buyerName]
-paymentOffered paymentOffered pending [paymentAmount, belowPaymentAmount, pending, noRetry]
+enum terms terms pending [agreed, failed, pending, noRetry]
+enum backpackOwner backpackOwner sellerName [buyerName, sellerName]
+enum paymentOwner paymentOwner buyerName [sellerName, buyerName]
+enum paymentOffered paymentOffered pending [paymentAmount, belowPaymentAmount, pending, noRetry]
 \end{lstlisting}
 }
 %
@@ -26,16 +28,24 @@ The first thing defined are the constants. You will notice that each constant is
 
 Despite not being explicitly stated, "True" and "False" are always included as constants. 
 
-After two line breaks, the file begins defining the object state variables. For both efficiency and simplicity, every object state variable is created as an "mtype" variable in Promela. This means that their possible values are limited to the defined constants listed previously. For each variable, both the CWP name and BPMN name are listed first, followed by the initial value. Then, in square brackets, the set of assignable values is listed.
+Possible data types are "enum", "byte", "short", and "int".
+After two line breaks, the file begins defining the object state variables. For each variable, both the CWP name and BPMN name are listed first, followed by the initial value. Then, in square brackets, the set of assignable values is listed.
 
-It should be noted that initial variable values are essential for the verification process. This is because the verifier will first check the LTL property, then step forward in the Promela code. This means that variables cannot be initialized in the first activity of the BPMN unless uninitialized variables are accounted for in the CWP. We recommend avoiding this and declaring initial values for at least some of the environment variables.
+It should be noted that initial variable values are essential for the verification process. This is because the verifier will first check the LTL property, then step forward in the Promela code.
 
-Another important point is that the ordering of constants matters. In promela, mtype variable options are assigned integer values under the hood. For checking equality and inequality, this doesn't matter. But it does matter when doing a comparison. In the simple purchase example explained previously, one condition for a successful purchase is that \lstinline[style=myPromela]{paymentOffered < paymentAmount}. 
+\egm{Does there need to be a section on model checking in the backgroud where these type of details are defined and discussed? Also, while it's an interesting point, is it a necessary point? Is it enough to just state that every part of the object state, and extended BPMN state, needs an initial value? These values define the initial starting state of the BPMN and CWP?}
+
+This means that variables cannot be initialized in the first activity of the BPMN unless uninitialized variables are accounted for in the CWP. We recommend avoiding this and declaring initial values for at least some of the environment variables.
+
+Another important point is that the ordering of constants matters. In promela, mtype variable options are assigned integer values under the hood. For checking equality and inequality, this doesn't matter. But it does matter when doing a comparison. In Face2Face, one condition for a successful purchase is that \lstinline[style=myPromela]{paymentOffered < paymentAmount}. 
+\egm{Didn't our example get a name, and didn't we say we would refer to it by that name? I might suggest using the name. Thus far, we haven't used the example to much either in automation section.}
 To assist in asserting this comparison, two constants are added to the object state definition: 
 \lstinline[style=myPromela]{paymentAmount}
 and \lstinline[style=myPromela]{belowPaymentAmount}. 
 It is critical that \lstinline[style=myPromela]{belowPaymentAmount} 
 be declared before \lstinline[style=myPromela]{paymentAmount} so that the underlying integer value is indeed lesser.
+
+\egm{OK. The above is a big deal. This type of subtly and nuance I think is very problematic. The object state consists of only `mtype` but we are allowing the full range of operators on that type including relational operators? That seems really dangerous. Right? Why not allow, for example, variables with primitive types, so the object state can have a `temperature` value that is a `short`? In any case, I suggest a new section be added at the beginning of the automation section that discusses nothing but the object state definition and its implications on writing expressions.}
 
 These environment variables are manipulated during the activities in the BPMN. The exact nature of these manipulations plays a vital role in the verification process. We call these manipulations the behavior models.
 
@@ -76,7 +86,10 @@ inline T2_BehaviorModel(){
 \end{lstlisting}
 }
 %
-The PML file must contain a valid PML inline for each activity in the BPMN diagram. These inlines will be called when a token passes thorugh an activity in the Promela model. For example, \lstinline[style=myPromela]{T1_BehaviorModel()}
+The PML file must contain a valid PML inline for each activity in the BPMN diagram. These inlines will be called when a token passes through an activity in the Promela model. For example, \lstinline[style=myPromela]{T1_BehaviorModel()}
 is the name of the inline that will be executed when the task named \lstinline[style=mypromela]{T1} 
-is reached. If the file does not exist when the translation process begins, the automation tool will output a stub file with the skeleton of each inline defined. Next the user must add Promela code to manipulate the object state in a way that is consistent with the intended behavior of the business process.  The inlines, in many cases, should contain nondeterminism. Using this nondeterminism, every reasonable outcome of that activity will be considered during verification. The creation of the behavior models is one aspect of translation that still requires an expert in model checking to complete. The writer of the Promela inlines must not only be proficient in the model checking language, but must also understand the nondeterministic intentions of the inlines. 
+is reached. If the file does not exist when the translation process begins, the automation tool will output a stub file with the skeleton of each inline defined.
+\egm{I assume the translation tool will never overwrite the file? Always a concern...}
+Next the user must add Promela code to manipulate the object state in a way that is consistent with the intended behavior of the business process.  The inlines, in many cases, should contain nondeterminism. Using this nondeterminism, every reasonable outcome of that activity will be considered during verification. The creation of the behavior models is one aspect of translation that still requires an expert in model checking to complete. The writer of the Promela inlines must not only be proficient in the model checking language, but must also understand the nondeterministic intentions of the inlines.
+\egm{Missing is a discussion of on of the behavior models in the code snippet? We have the face2face example, add text that talks about the code in that example. What does it mean? What is the implication? That might help understand the role, and need, for the non-determinism. Right?}
 

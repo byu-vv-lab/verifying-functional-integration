@@ -6,15 +6,21 @@ To simulate this behavior in Promela, we use a while loop. The following code sh
 active proctype name() {
   /* Add tokens to initial elements */
   do
-  :: /* element_0 trigger */ ->
+  :: atomic{ /* element_0 trigger */ ->
     /* element_0 actions */
-  :: /* element_1 trigger */ ->
+    }
+  :: atomic{ /* element_1 trigger */ ->
     /* element_1 actions */
+    }
   /* ... */  
-  :: /* element_n trigger */ ->
+  :: atomic{ /* element_n trigger */ ->
     /* element_n actions */
+    }
   od
 }
 \end{lstlisting}
 
-Each process in the Promela model has one primary "while" loop with a set of nondeterministic execution options. Each option corresponds to a possible action. At each step, the verifier chooses one action to perform. Then, execution returns to the primary loop. Because of the nondeterministic nature of Promela and its verifier SPIN, this process can create the comprehensive state space for the BPMN. A state in the BPMN is characterized both by the location of tokens and the value of object state variables. 
+
+Each process in the Promela model has one primary "while" loop with a set of nondeterministic execution options. Each option corresponds to a possible action. At each step, the verifier chooses one action to perform. It is important to note that once an action is chosen by SPIN, the action must be completed fully before any other action can be begun, including for other processes. This is why each action is wrapped in an atomic block with its trigger. Then, execution returns to the primary loop. Because of the nondeterministic nature of Promela and its verifier SPIN, this process can create the comprehensive state space for the BPMN. A state in the BPMN is characterized both by the location of tokens and the value of object state variables.
+
+As mentioned earlier, the manual effort to construct a correct Promela model is tedious and error-prone. Each trigger and action needs to be added individually with frequent reference to the original BPMN. When a model is finished, there is no easy way to verify that each was added correctly. If the corresponding CWP has already been translated into LTL, then a verification run can help. There is, however, a major problem with this approach. If verification fails it is still difficult to see if the problem stems from the original workflow design or if there was a mistake during manual translation. Even if verification succeeds, there is a possibility that the workflow is erroneous and there was a mistake in translation that hides the workflow issue. The only way to know that the translation was correct is by tedious, meticulous inspection.

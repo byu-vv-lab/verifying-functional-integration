@@ -8,3 +8,10 @@ Compile a larger set of practical test input to get a more complete view of limi
 
 Improve BPMN readability by removing the condition expression from the edge labels originating at forking XOR gateways. Instead use the ConditionExpression attribute of the .bpmn XML file. This attribute can only be viewed and edited in the Camunda desktop modeller (not the online bpmn.io one).
 
+Add in more options during verification to make it more user-friendly, especially when a critical error causes ALL of the properties to fail, taking up an unnecessarily long time. (maybe after each failure, give the user a choice on whether to perform the visualization or not).
+
+Cut out the behavior models for non-task BPMN elements.
+
+We may have a problem with message start events. Right now, I don't believe there is the functionality for the start event to activate more than once. The desired effect is that the process is started each time the message is received. Currently, a token needs to be both in the message and in the start event. The only way a token enters a start event is at the beginning of verification.
+
+Multiple start events ARE allowed in BPMN, but it only defines two different options for a process instance. Right now, our tool is implemented as two starting locations for the same instance. Basically, verification should be done for each start location individually, but NOT for both start locations concurrently.

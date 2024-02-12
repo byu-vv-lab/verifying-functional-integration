@@ -1,0 +1,93 @@
+The next step to generating a state space for the BPMN diagram is defining how and where the state should evolve. We call this the behavior models. Each task in the BPMN has a behavior model defining how it can transform the state. The following is an example of the behavior model for task 2 in Face2Face: 
+
+\begin{lstlisting}[style=myPromela]
+inline T2_BehaviorModel(){
+    if
+        :: true -> terms = agreed
+        :: true -> terms = failed
+    fi
+    if
+        :: true -> paymentOffered = paymentAmount
+        :: true -> paymentOffered = belowPaymentAmount
+    fi
+    updateState()
+}
+\end{lstlisting}
+
+There are a few interesting things to note here. First, the semantics of an "if" statement in Promela are different than in a traditional programming language. In Promela, an "if" statement is followed by a series of options, represented by the double colon followed by a "guard" statement. In this case, ":: true" for each option. Only one option is ever executed, but the choice is nondeterministic. During verification, SPIN will explore every possible path, so when it reaches the first "if" statement in this behavior model, a new group of state spaces will be generated where "terms" is set to "agreed" and another group where "terms" is set to "failed". Each of these groups then splits again based on the result of the second "if" statement.
+
+Therefore, behavior models are not meant to precisely mirror the underlying business logic of a process. Instead, the behavior models simulate all possible outcomes of the business logic without the need for representing every input factor. For example, there are a lot of factors that may determine whether negotiations end in agreed terms or failed terms. Factors such as price flexibility of the seller, urgency of the purchase for the buyer, inventory levels of the product, and more can affect the outcome of the negotiations. During model checking, the behavior models simulate all possible outcomes of a task while masking all the input factors external to the BPMN model. This does not mean that every outcome is always possible. Options in behavior models can be conditional on other state variables. For example, it may be reasonable to add in a third option in Task 2's behavior model as follows:
+
+
+\begin{lstlisting}[style=myPromela]
+inline T2_BehaviorModel(){
+    if
+        :: true -> terms = agreed
+        :: true -> terms = failed
+        :: terms == failed -> terms = noRetry
+    fi
+    if
+        :: true -> paymentOffered = paymentAmount
+        :: true -> paymentOffered = belowPaymentAmount
+        :: paymentOffered == belowPaymentAmount -> paymentOffered = noRetryPayment
+    fi
+    updateState()
+}
+\end{lstlisting}
+
+In this version, "terms" and "paymentOffered" can be set to "noRetry" and "noRetryPayment" respectively, but only on the condition that negotiations had failed already previously.
+
+The final line of every behavior model is updating the state. We provide sections of this macro here to illustrate its effect:
+
+\begin{lstlisting}[style=myPromela]
+
+/**********UPDATE STATE INLINE************/
+inline updateState() {
+    d_step {
+        if
+        :: (terms != pending || paymentOffered != pendingPayment) -> 
+            EdgeA = 1
+        :: else -> 
+            EdgeA = 0
+        fi
+        /****MORE EDGE ASSIGNMENTS***
+        .
+        .
+        */
+        if
+        :: (paymentOwner == buyerName &&backpackOwner == sellerName ) -> 
+            EdgeE = 1
+        :: else -> 
+            EdgeE = 0
+        fi
+        Init_Purchase_Pending = 
+            (
+                (EdgeE)
+                &&
+                (! (EdgeA))
+            )
+        /****MORE STATE ASSIGNMENTS***
+        .
+        .
+        */
+        Negotiations = 
+            (
+                (EdgeA)
+                &&
+                (! (EdgeC || EdgeD))
+            )
+        assert(termsInvariant)
+        assert(backpackOwnerInvariant)
+        assert(paymentOwnerInvariant)
+        assert(paymentOfferedInvariant)
+    }
+}
+\end{lstlisting}
+
+
+This macro uses the new state variable values to assign a bit value for each edge in the CWP. Then, each edge value is used to assign a bit value for each CWP state. Finally, we assert that each state variable is assigned a value within its given domain. Additionally, one of the more significant improvements on the original work in \cite{mercer22} is a shift from "atomic" blocks to "d\_step" blocks. This change informs the SPIN model checker of blocks of code that will execute deterministically, and drastically reduces the size of the state space. This change will be discussed in more detail during evaluation.
+
+A set of behavior models should be provided to the automation tool as a Promela file. This file must contain a behavior model inline for each non-flow element in the BPMN. If this file doesn't exist when beginning verification, the tool will halt and write a skeleton file for you. This skeleton file is helpful as it automatically generates each inline definition. It also populates each inline with an extremely loose manipulation of the state variables. That is, it sets each variable to each possible value in every single task. Most likely, this is not the desired behavior, so the author is encouraged to modify the contents of each behavior model to better represent the business logic.
+
+Now that we understand how the object state is defined and where and how it evolves, we take a look at the automated generation of the LTL properties from the CWP diagram and the Promela model from the BPMN workflow. These translations will be discussed in the following two sections.
+

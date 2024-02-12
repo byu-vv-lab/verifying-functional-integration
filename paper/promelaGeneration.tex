@@ -1,0 +1,81 @@
+This section examines the mechanism for automated translation from BPMN workflows into verifiable Promela models. We look at requirements for the workflow to be correctly ingested as well as the translation implementation itself.
+
+The BPMN diagrams are ingested into the translation tool as .bpmn files, which is a file format that contains XML data. The .bpmn format was standardized by Camunda, a Business Process Management company and investor in the BPMN standard. Diagrams can be exported into .bpmn using either the open-source online editor at bpmn.io, or Camunda's free desktop modeller. Both of these tools use the open-source project bpmn-js as a backend.
+
+In line with the desire to create code that can easily be traced back to the source diagram, the automation tool requires that each activity in the workflow be prepended with a unique alphanumeric string followed by a hyphen. This allows the code to reference that activity in a concise, understandable way - "T$N$", where $N$ is the alphanumeric string. Verification will fail to execute if $N$ is not a unique value for each task. Full labels are used as unique identifiers for all other elements because gateways and events tend to have shorter labels. In a similar fashion, if two gateways or events have identical labels, verification will fail to execute. If an element has no label, a random unique identifier is assigned to it.
+
+In order to facilitate easy addition of attributes and traversal of the BPMN, we are using an intermediate Python representation before generating any Promela code. This Python representation is a graph structure, where flows are edges of the graph and elements are nodes.
+
+We note that there is no syntactic check on the workflow's structure. It is the author's responsibility to ensure valid BPMN is provided. Several free BPMN editors assist authors in creating a valid structure. 
+
+We use a visitor pattern to distinguish the BPMN structure from the code generation algorithm. The code generator visitor traverses the structure, visiting each element. An element could be any BPMN element, such as an event, task or flow. When the code generator visits an element, various code snippets are generated based on the type of element. We start at the top, looking at the visitation of the model:
+\begin{lstlisting}[style=myPython]
+    def visit_model(self, element:Model) -> None:
+        initLines = "init {\n"
+        initLines += "\tatomic{\n"
+        initLines += "\t\tupdateState()\n"
+        for process in element.processList:
+            initLines += "\t\trun {}()\n".format(process.name)
+        initLines += "\t}\n"
+        initLines += "}\n\n"
+        self.writeInitLines(initLines)
+        for process in element.processList:
+            process.accept(self)
+        for place in self.flowPlaces:
+            self.writePlacesLines("bit {x} = 0".format(x = str(place)))
+\end{lstlisting}
+
+First it writes the \emph{init} process, which is the process used in Promela to initialize other processes. The \emph{init} process first updates the state to ensure we are in a valid CWP state to begin. Then, it runs a separate process for each process in the BPMN workflow. After the \emph{init} process is written, the visitor will visit each of the processes in the model. Here we look at the behavior of a process when it is visited:
+\begin{lstlisting}[style=myPython]
+    def visit_process(self, element:Process) -> None:
+        self.writeWorkflowLines("proctype {x}() {{".format(x = element.name))
+        self.workflowIndent += 1
+        self.writeWorkflowLines("pid me = _pid")
+        for startEvent in element.startStateList:
+            if not startEvent.inMsgs:
+                self.writeWorkflowLines("putToken({x})".format(x = startElement.label))
+        self.writeWorkflowLines("do")
+        for startEvent in element.startStateList:
+            startEvent.accept(self)
+        self.writeWorkflowLines("od")
+        self.workflowIndent -= 1
+        self.writeWorkflowLines("}")
+\end{lstlisting}
+
+The first thing it does is identify its process identification number (pid). Then, it puts tokens in each of its start elements. Finally, the visitor visits each start event.
+
+Next we'll show the default behavior for the visitor at an element:
+
+\begin{lstlisting}[style=myPython]
+    def visit_element(self, element:Element) -> None:
+        if element.seen:
+            return
+        element.seen = True
+        self.genPlaces(element)
+        self.genActivationOption(element)
+        for flow in element.outFlows:
+            flow.accept(self)
+\end{lstlisting}
+
+A few interesting things happen. First, a place is generated for a token to reside in eventually. Also, an activation option is generated, which adds an entry into the large "do" loop mentioned in \secref{sec:backgroundBPMN}. After this, each flow originating at this element is visited. This default behavior is most notably used by non-start and non-end events. Other element types behave similar to the default, with slight variations.
+
+The following is the code for visiting a flow:
+
+\begin{lstlisting}[style=myPython]
+    def visit_flow(self, element:Flow) -> None:
+        if element.seen:
+            return
+        element.seen = True
+        target = element.toNode
+        target.accept(self))
+\end{lstlisting}
+
+The flow is marked as seen and then the target of the flow is visited. 
+
+\begin{comment}
+Because BPMN does not have rigorous execution semantics defined, there are some situations in BPMN where the function of an element is implied by the structure in which it is used. For example, gateways can either be forking gateways (with multiple outgoing flows) or joining gateways (with multiple incoming flows). This distinction is not addressed directly in the BPMN syntax. We handle this by splitting some traditional BPMN element classes into multiple element classes in the python intermediate representation. There is in the python representation, for example, both a "parallelGatewayJoinNode" class and a "parallelGatewayForkNode" class. This distinction is important because 
+\end{comment}
+
+In our use of BPMN workflows, some of the flow labels carry significant information necessary to the control flow. These labels are on flows emanating from branching XOR gateways. We also have requirements for the content of these flows: the automation tool enforces syntactically correct Promela boolean logic. If the automation tool find a flow emanating from a branching XOR gateway is not valid boolean logic, it will throw an exception.
+
+Therefore, we parse and perform both a syntactic and type check on the labels. The expected syntax is identical to the syntax mentioned at the beginning of \secref{sec:objectStateDefinition}. To summarize, it is basically the set of boolean operators found in C-type programming languages. Each edge can contain exactly one expression. The type check verifies that all the variable typings are valid in an expression. For example, non-numeric types should not be compared with numeric types and non-numeric types should never be involved in inequalities.

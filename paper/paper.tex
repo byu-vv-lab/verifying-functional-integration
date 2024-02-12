@@ -19,7 +19,8 @@
 \usepackage{svg}
 \usepackage[T1]{fontenc}
 \usepackage{hyperref}
-
+\usepackage{verbatimbox}
+% \usepackage{tabularx}
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
@@ -27,21 +28,48 @@
 
 \lstdefinestyle{myPromela}
 {frame=none,
-  basicstyle=\ttfamily,
+  basicstyle=\ttfamily,  
   language=Promela,
   aboveskip=1mm,
   belowskip=1mm,
-  showstringspaces=false,
   columns=flexible,
-  numbers=none,
+  numbers=none,  
+  breaklines=true,
   numberstyle=\tiny\color{gray},
   commentstyle=\color{dkgreen},
   stringstyle=\color{mauve},
-  breaklines=false,
-  breakatwhitespace=true,
   tabsize=2,
-  linewidth=2\linewidth,
-  morekeywords={always, eventually, until, implies, ltl}
+  morekeywords={always, eventually, until, implies, ltl},
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+  literate={\ \ }{{\ }}1,
+}
+
+\lstdefinestyle{myGrammar}
+{frame=none,
+  basicstyle=\itshape,
+  keywordstyle=\bfseries,
+  commentstyle=\dkgreen,
+  xleftmargin=2em,
+  literate={->}{$\rightarrow$}{2},
+  morekeywords={const, NUM, enum, bool, True, False}}
+
+\lstdefinestyle{myPython}
+{frame=none,
+  basicstyle=\ttfamily,
+  aboveskip=1mm,
+  belowskip=1mm,
+  language=Python,
+  columns=fullflexible,
+  numbers=none,
+  breaklines=true,
+  showstringspaces=false,
+  numberstyle=\tiny\color{gray},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  tabsize=2,
+  morekeywords={always, eventually, until, implies, ltl},
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+  literate={\ \ }{{\ }}1,
 }
 
 \lstdefinestyle{myTXT}
@@ -56,6 +84,8 @@
 
 \newcommand{\figref}[1]{Fig.~\ref{#1}}
 \newcommand{\secref}[1]{Sec.~\ref{#1}}
+\newcommand{\tabref}[1]{Tab.~\ref{#1}}
+\newcommand{\appendixref}[1]{Appendix~\ref{#1}}
 
 \newcommand{\ie}{\textit{i.e.}}
 \newcommand{\eg}{\textit{e.g.}}
@@ -63,6 +93,8 @@
 \newcommand{\etc}{\textit{etc.}}
 \newcommand{\adhoc}{\textit{ad hoc}}
 \newcommand{\phware}{PHware}
+\newcommand{\buynsell}{BuyN'Sell}
+\newcommand{\facetoface}{Face2face}
 \newcommand{\scitesection}[1]{\section{\uppercase{#1}}}
 
 \newif\ifcomments
@@ -73,7 +105,7 @@
 \begin{document}
 
 \title{
-  Model Checking Functional Integration of Human Cognition and Machine Reasoning
+  Automating Verification of BPMN Workflow Functional Correctness Using Model Checking
 }
 
 \author{
@@ -118,28 +150,32 @@ Provo UT, USA \\
 \input{backgroundBPMN}
 
 \section{Automated Generation of the Promela Model}
-\label{sec:automaticGeneration}
-\input{automaticGeneration}
+\label{sec:automatedGeneration}
+\input{automatedGeneration}
 
-\subsection{CWP Translation}
-\label{sec:cwpTranslation}
-\input{cwpTranslation}
+\subsection{State Variable Declaration}
+\label{sec:objectStateDefinition}
+\input{objectStateDefinition}
 
-\subsection{BPMN Translation}
-\label{sec:bpmnReasoning}
-\input{bpmnReasoning}
+\subsection{Behavior Models}
+\label{sec:behaviorModels}
+\input{behaviorModels}
 
-\subsection{Environment Generation}
-\label{sec:envConstruction}
-\input{envConstruction}
+\subsection{LTL Generation}
+\label{sec:ltlGeneration}
+\input{ltlGeneration}
+
+\subsection{Promela Generation}
+\label{sec:promelaGeneration}
+\input{promelaGeneration}
+
+\section{Error Visualization}
+\label{sec:counterexample}
+\input{counterexample}
 
 \section{Tool Architecture}
 \label{sec:toolArchitecture}
 \input{toolArchitecture}
-
-\section{Counterexample Visualization}
-\label{sec:counterexample}
-\input{counterexample}
 
 \section{Evaluation}
 \label{sec:eval}
@@ -153,6 +189,18 @@ Provo UT, USA \\
 
 \section*{Acknowledgment}
 \addcontentsline{toc}{section}{Acknowledgment}
+
+\begin{appendices}
+
+\section{Evaluation Examples}
+\label{sec:evaluationExamples}
+\input{appendixA}
+
+\section{Description of Modules}
+\label{sec:descriptionOfModules}
+\input{appendixB}
+
+\end{appendices}
 
 \bibliographystyle{IEEEtran}
 {\small 

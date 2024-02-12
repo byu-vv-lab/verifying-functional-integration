@@ -12,13 +12,13 @@ State properties are generated for each state in the CWP, and ensure the followi
     \item When the system moves from the current state, it only moves to a state that has a transition from the current state
 \end{enumerate}
 
-The CWP states are defined as boolean expressions using the edges as atomic propositions. The CWP is said to reside in a state when the following expression is true: 
+The CWP states are defined as Boolean expressions using the edges as atomic propositions. The system is said to reside in a state when the following expression is true: 
 
-\[(I_0 \land I_1 \land \ldots \land I_n) \land \neg (O_0 \ O_1 \lor \ldots \lor O_m)\]
+\[(I_0 \land I_1 \land \ldots \land I_n) \land \neg (O_0 \lor O_1 \lor \ldots \lor O_m)\]
 
 where $I_0, I_1 \ldots I_n$ are incoming edges and $O_0, O_1 \ldots O_m$ are outgoing edges. The number of incoming edges is $n$ and the number of outgoing edges is $m$. 
 
-\figref{fig:CWPStateDefinition} shows the CWP from the simple example given in the previous section with the edges labelled with letters from A to E. Using these labels, the definition of the \lstinline[style=myPromela]{Negotiations} state looks like this:
+Using the edge labels A-E from \figref{fig:PurchaseCWP}, the definition of the \lstinline[style=myPromela]{Negotiations} state looks like this:
 
 \begin{lstlisting}[style=myPromela]
 Negotiations =
@@ -29,19 +29,9 @@ Negotiations =
     )
 \end{lstlisting}
 
-\begin{figure*}[t]
-  \begin{center}
-    \begin{tabular}{c}
-        \includegraphics[width=\textwidth]{../figs/Other/CWPStateDefinition.png}
-    \end{tabular}
-  \end{center}
-\caption{CWP for a purchase with the edges labelled}
-\label{fig:CWPStateDefinition}
-\end{figure*}
+Once each of the states is property defined, we can begin to construct the LTL properties using these states as atomic propositions. The complete mathematical definition for each property will not be given in this paper, but an example with state property number two, or mutual exclusion, will be shown for the Negotiations state in the purchase CWP.
 
-Once each of the states is property defined, we can begin to construct the LTL properties using these states as atomic propositions. The complete mathematical definition for each property will not be given in this paper, but an example with state property number two, or mutual exclusion, will be shown for the \lstinline[style=myPromela]{Negotiations} state in the purchase CWP.
-
-\figref{fig:MutualExclusionExample} shows a visualization of the property, as it ensures that when a given state resolves to be true, all other states must resolve to be false. This is what the LTL property looks like for this example:
+The mutual exclusion property ensures that while the system resides in a particular CWP state, it only resides in that state, and does not reside in any other state in the CWP simultaneously. The property ensures that each state is completely distinct from each other state. This is what the LTL property looks like for Face2Face:
 
 \begin{lstlisting}[style=myPromela]
 ltl NegotiationsMutex {
@@ -59,12 +49,9 @@ ltl NegotiationsMutex {
 }
 \end{lstlisting}
 
-\begin{figure*}[t]
-  \begin{center}
-    \begin{tabular}{c}
-        \includegraphics[width=\textwidth]{../figs/Other/MutualExclusionExample.png}
-    \end{tabular}
-  \end{center}
-\caption{CWP for a purchase with annotations to assist in understanding the mutual exclusion property}
-\label{fig:MutualExclusionExample}
-\end{figure*}
+The other properties look similar. A special property is the second global property, ensuring that a goal state is eventually reached. We call this property \emph{fair}. Satisfying the fair property is a prerequisite for state properties 1 and 3: the check for existence of a state and the constraint on allowable transitions from a state.
+
+The fairness property is an insurance that the system eventually reaches a goal state. If this property finds an error, that error is an existential witness, indicating that there is a path leading to a goal state. This property is additionally used as a precondition for several other properties.
+
+Fairness is used primarily to assist the model checker in avoiding infinite loops. It is also used as a precondition for other properties. We are essentially telling the model checker that if a path doesn't lead to a goal state, it shouldn't spend any resources checking whether it satisfies other LTL formulae.
+
